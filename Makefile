@@ -68,6 +68,14 @@ check_headers:
 test_integration:
 	./test/integration/gcloud/run.sh
 
+.PHONY: test_helpers
+test_helpers:
+	@./test/helpers/test_generate_root_module.py
+
 .PHONY: generate_docs
 generate_docs:
 	@source test/make.sh && generate_docs
+
+.PHONY: generate
+generate:
+	@./helpers/generate_root_module.py
