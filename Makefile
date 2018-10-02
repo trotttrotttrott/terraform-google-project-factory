@@ -79,3 +79,8 @@ generate_docs:
 .PHONY: generate
 generate:
 	@./helpers/generate_root_module.py
+
+# Versioning
+.PHONY: version
+version:
+	@source helpers/version-repo.sh
