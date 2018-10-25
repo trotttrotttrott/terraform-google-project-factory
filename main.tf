@@ -83,6 +83,29 @@ data "google_organization" "org" {
   organization = "${var.org_id}"
 }
 
+/******************************************
+ Probe gcloud for an active authorization.
+ *****************************************/
+data "external" "gcloud-auth-active" {
+  program = ["${path.module}/scripts/gcloud-auth-active.sh"]
+}
+
+/******************************************
+ Check that we have valid credentials to delete the GCE service account.
+ `credentials_path` is preferred, and will fall back to the active gcloud
+ credentials.
+ *****************************************/
+resource "null_resource" "gcloud-authorized" {
+  triggers {
+    gcloud_auth      = "${data.external.gcloud-auth-active.result["active"]}"
+    credentials_path = "${var.credentials_path}"
+  }
+
+  provisioner "local-exec" {
+    command = "${path.module}/scripts/gcloud-authorized.sh '${var.credentials_path}'"
+  }
+}
+
 /*******************************************
   Project creation
  *******************************************/
@@ -97,6 +120,8 @@ resource "google_project" "project" {
   labels = "${var.labels}"
 
   app_engine = "${local.app_engine_config["${local.app_engine_enabled ? "enabled" : "disabled"}"]}"
+
+  depends_on = ["null_resource.gcloud-authorized"]
 }
 
 /******************************************
@@ -135,7 +160,7 @@ data "google_compute_default_service_account" "default" {
  *****************************************/
 resource "null_resource" "delete_default_compute_service_account" {
   provisioner "local-exec" {
-    command = "${path.module}/scripts/delete-service-account.sh ${local.project_id} ${var.credentials_path} ${data.google_compute_default_service_account.default.id}"
+    command = "${path.module}/scripts/delete-service-account.sh '${local.project_id}' '${var.credentials_path}' '${data.google_compute_default_service_account.default.id}'"
   }
 
   triggers {

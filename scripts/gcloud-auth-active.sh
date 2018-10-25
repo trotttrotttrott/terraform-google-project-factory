@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/bin/sh
+
 # Copyright 2018 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,22 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 set -e
 
-PROJECT_ID=$1
-CREDENTIALS=$2
-SA_ID=$3
+INNER=$(gcloud auth list --format='get(account)' --filter='status:ACTIVE')
 
-if [ -n "$CREDENTIALS" ]; then
-    export CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE=$CREDENTIALS
-fi
-
-SA_LIST=$(gcloud --project="$PROJECT_ID" iam service-accounts list || exit 1)
-
-if [[ $SA_LIST = *"$SA_ID"* ]]; then
-    echo "Deleting service account $SA_ID in project $PROJECT_ID"
-    gcloud iam service-accounts delete --quiet --project="$PROJECT_ID" "$SA_ID"
-else
-    echo "Service account not listed. It appears to have already been deleted."
-fi
+echo "{\"active\": \"$INNER\"}"

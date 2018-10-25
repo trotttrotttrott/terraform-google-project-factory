@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/bin/sh
+
 # Copyright 2018 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,22 +14,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-set -e
-
-PROJECT_ID=$1
-CREDENTIALS=$2
-SA_ID=$3
-
+CREDENTIALS=$1
 if [ -n "$CREDENTIALS" ]; then
     export CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE=$CREDENTIALS
 fi
 
-SA_LIST=$(gcloud --project="$PROJECT_ID" iam service-accounts list || exit 1)
+# Verify that we have authorized credentials by enumerating the GCP
+# organizations. Enumerating the organizations will succeed if gcloud was
+# able to obtain credentials, even if the active account cannot view any
+# organizations.
+gcloud organizations list 2>/dev/null 1>/dev/null
+IS_AUTHORIZED=$?
 
-if [[ $SA_LIST = *"$SA_ID"* ]]; then
-    echo "Deleting service account $SA_ID in project $PROJECT_ID"
-    gcloud iam service-accounts delete --quiet --project="$PROJECT_ID" "$SA_ID"
+if [ $IS_AUTHORIZED -eq 0 ]; then
+    echo "gcloud authorized" 1>&2
 else
-    echo "Service account not listed. It appears to have already been deleted."
+    echo "gcloud not authorized" 1>&2
 fi
+exit $IS_AUTHORIZED
