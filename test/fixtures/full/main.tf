@@ -31,29 +31,33 @@ provider "gsuite" {
   version = "~> 0.1.9"
 }
 
+resource "random_id" "network_name_suffix" {
+  byte_length = 2
+}
+
 module "vpc" {
   source          = "terraform-google-modules/network/google"
   version         = "~> 0.4.0"
-  network_name    = "${var.name}"
+  network_name    = "${var.name}-${random_id.network_name_suffix.hex}"
   project_id      = "${var.shared_vpc}"
   shared_vpc_host = "true"
 
-  subnets = [
-    {
-      subnet_name   = "subnet-01"
-      subnet_ip     = "10.10.10.0/24"
-      subnet_region = "us-east4"
-    },
-  ]
+  subnets = []
+    # {
+    #   subnet_name   = "subnet-01"
+    #   subnet_ip     = "10.10.10.0/24"
+    #   subnet_region = "us-east4"
+    # },
+  # ]
 
-  secondary_ranges = {
-    subnet-01 = [
-      {
-        range_name    = "subnet-01-secondary"
-        ip_cidr_range = "192.168.64.0/24"
-      },
-    ]
-  }
+  secondary_ranges = {}
+    # subnet-01 = [
+    #   {
+    #     range_name    = "subnet-01-secondary"
+    #     ip_cidr_range = "192.168.64.0/24"
+    #   },
+    # ]
+  # }
 }
 
 module "project-factory" {
