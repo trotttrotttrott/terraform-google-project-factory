@@ -18,7 +18,7 @@ if [ -n "$(git status --porcelain)" ]; then
   exit 1
 fi
 
-NEW_VERSION=$(grep '##' CHANGELOG.md | head -n 1 | cut -d' ' -f2)
+NEW_VERSION=$(grep '## \[\d' CHANGELOG.md | head -n 1 | cut -d' ' -f2 | sed 's/[][]//g')
 NEW_RELEASE_NAME=v$NEW_VERSION
 CURRENT_RELEASE_NAME=$(git describe --abbrev=0 --tags)
 
